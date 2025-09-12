@@ -1725,6 +1725,21 @@ cfg_if! {
     }
 }
 
+extern "C" {
+    pub fn mkdirat(dirfd: c_int, pathname: *const c_char, mode: mode_t) -> c_int;
+    #[cfg_attr(gnu_file_offset_bits64, link_name = "openat64")]
+    pub fn openat(dirfd: c_int, pathname: *const c_char, flags: c_int, ...) -> c_int;
+    #[cfg_attr(
+        all(target_os = "macos", target_arch = "x86_64"),
+        link_name = "fdopendir$INODE64"
+    )]
+    #[cfg_attr(
+        all(target_os = "macos", target_arch = "x86"),
+        link_name = "fdopendir$INODE64$UNIX2003"
+    )]
+    pub fn fdopendir(fd: c_int) -> *mut crate::DIR;
+}
+
 cfg_if! {
     if #[cfg(not(target_os = "redox"))] {
         extern "C" {
@@ -1734,20 +1749,6 @@ cfg_if! {
                 link_name = "pause$UNIX2003"
             )]
             pub fn pause() -> c_int;
-
-            pub fn mkdirat(dirfd: c_int, pathname: *const c_char, mode: mode_t) -> c_int;
-            #[cfg_attr(gnu_file_offset_bits64, link_name = "openat64")]
-            pub fn openat(dirfd: c_int, pathname: *const c_char, flags: c_int, ...) -> c_int;
-
-            #[cfg_attr(
-                all(target_os = "macos", target_arch = "x86_64"),
-                link_name = "fdopendir$INODE64"
-            )]
-            #[cfg_attr(
-                all(target_os = "macos", target_arch = "x86"),
-                link_name = "fdopendir$INODE64$UNIX2003"
-            )]
-            pub fn fdopendir(fd: c_int) -> *mut crate::DIR;
 
             #[cfg_attr(
                 all(target_os = "macos", not(target_arch = "aarch64")),

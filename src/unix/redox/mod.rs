@@ -353,6 +353,11 @@ pub const F_TLOCK: c_int = 2;
 pub const F_TEST: c_int = 3;
 
 pub const AT_FDCWD: c_int = -100;
+pub const AT_SYMLINK_NOFOLLOW: c_int = 0x100;
+pub const AT_REMOVEDIR: c_int = 0x200;
+pub const AT_SYMLINK_FOLLOW: c_int = 0x400;
+pub const AT_EMPTY_PATH: c_int = 0x1000;
+pub const AT_EACCESS: c_int = 0x200;
 
 // FIXME(redox): relibc {
 pub const RTLD_DEFAULT: *mut c_void = 0i64 as *mut c_void;
@@ -525,6 +530,7 @@ pub const O_SHLOCK: c_int = 0x0010_0000;
 pub const O_EXLOCK: c_int = 0x0020_0000;
 pub const O_ASYNC: c_int = 0x0040_0000;
 pub const O_FSYNC: c_int = 0x0080_0000;
+pub const O_SYNC: c_int = 0x0080_0000;
 pub const O_CLOEXEC: c_int = 0x0100_0000;
 pub const O_CREAT: c_int = 0x0200_0000;
 pub const O_TRUNC: c_int = 0x0400_0000;
@@ -603,6 +609,9 @@ pub const TCP_NODELAY: c_int = 1;
 // FIXME(redox): relibc {
 pub const TCP_KEEPIDLE: c_int = 1;
 // }
+
+pub const UTIME_OMIT: c_long = 1073741822;
+pub const UTIME_NOW: c_long = 1073741823;
 
 // poll.h
 pub const POLLIN: c_short = 0x001;
@@ -1173,6 +1182,16 @@ extern "C" {
 
     // dirent.h
     pub fn dirfd(dirp: *mut crate::DIR) -> c_int;
+    pub fn seekdir(dirp: *mut crate::DIR, loc: c_long);
+
+    pub fn faccessat(dirfd: c_int, pathname: *const c_char, mode: c_int, flags: c_int) -> c_int;
+    pub fn mknodat(dirfd: c_int, pathname: *const c_char, mode: mode_t, dev: dev_t) -> c_int;
+    pub fn utimensat(
+        dirfd: c_int,
+        path: *const c_char,
+        times: *const crate::timespec,
+        flag: c_int,
+    ) -> c_int;
 
     // unistd.h
     pub fn pipe2(fds: *mut c_int, flags: c_int) -> c_int;
@@ -1356,6 +1375,7 @@ extern "C" {
     // time.h
     pub fn gettimeofday(tp: *mut crate::timeval, tz: *mut crate::timezone) -> c_int;
     pub fn clock_gettime(clk_id: crate::clockid_t, tp: *mut crate::timespec) -> c_int;
+    pub fn clock_getres(clk_id: crate::clockid_t, tp: *mut crate::timespec) -> c_int;
     pub fn strftime(
         s: *mut c_char,
         max: size_t,
