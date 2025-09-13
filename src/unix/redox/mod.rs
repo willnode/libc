@@ -28,9 +28,9 @@ pub type suseconds_t = c_int;
 pub type tcflag_t = u32;
 pub type time_t = c_longlong;
 pub type id_t = c_uint;
-pub type pid_t = usize;
-pub type uid_t = u32;
-pub type gid_t = u32;
+pub type pid_t = c_int;
+pub type uid_t = c_int;
+pub type gid_t = c_int;
 
 #[cfg_attr(feature = "extra_traits", derive(Debug))]
 pub enum timezone {}
@@ -170,8 +170,17 @@ s! {
         pub si_signo: c_int,
         pub si_errno: c_int,
         pub si_code: c_int,
-        _pad: [c_int; 29],
-        _align: [usize; 0],
+        pub si_pid: pid_t, 
+        pub si_uid: uid_t,
+        pub si_addr: *mut c_void,
+        pub si_status: c_int,
+        pub si_value: crate::sigval,
+    }
+
+    pub struct stack_t {
+        pub ss_sp: *mut c_void,
+        pub ss_flags: c_int,
+        pub ss_size: size_t,
     }
 
     pub struct sockaddr {
@@ -315,6 +324,37 @@ s! {
         bytes: [u8; _PTHREAD_SPINLOCK_SIZE],
     }
 }
+
+impl siginfo_t {
+    pub unsafe fn si_addr(&self) -> *mut c_void {
+        self.si_addr
+    }
+
+    pub unsafe fn si_code(&self) -> c_int {
+        self.si_code
+    }
+
+    pub unsafe fn si_errno(&self) -> c_int {
+        self.si_errno
+    }
+
+    pub unsafe fn si_pid(&self) -> crate::pid_t {
+        self.si_pid
+    }
+
+    pub unsafe fn si_uid(&self) -> uid_t {
+        self.si_uid
+    }
+
+    pub unsafe fn si_value(&self) -> crate::sigval {
+       self.si_value
+    }
+
+    pub unsafe fn si_status(&self) -> c_int {
+        self.si_status
+    }
+}
+
 const _PTHREAD_ATTR_SIZE: usize = 32;
 const _PTHREAD_RWLOCKATTR_SIZE: usize = 1;
 const _PTHREAD_RWLOCK_SIZE: usize = 4;
@@ -684,6 +724,9 @@ pub const SA_RESTART: c_ulong = 0x0800_0000;
 pub const SA_NODEFER: c_ulong = 0x1000_0000;
 pub const SA_RESETHAND: c_ulong = 0x2000_0000;
 pub const SA_NOCLDSTOP: c_ulong = 0x4000_0000;
+
+pub const SS_ONSTACK: c_int = 0x00000001;
+pub const SS_DISABLE: c_int = 0x00000002;
 
 // sys/file.h
 pub const LOCK_SH: c_int = 1;
@@ -1297,6 +1340,7 @@ extern "C" {
         timeout: *const crate::timespec,
     ) -> c_int;
     pub fn sigwait(set: *const sigset_t, sig: *mut c_int) -> c_int;
+    pub fn sigaltstack(ss: *const stack_t, oss: *mut stack_t) -> c_int;
 
     // stdlib.h
     pub fn getsubopt(
