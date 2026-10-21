@@ -298,7 +298,7 @@ cfg_if! {
         #[allow(deprecated)]
         #[deprecated(since = "0.2.64", note = "Not stable across OS versions")]
         pub const RLIMIT_NLIMITS: crate::__rlimit_resource_t = RLIM_NLIMITS;
-    } else if #[cfg(any(target_env = "musl", target_env = "ohos"))] {
+    } else if #[cfg(any(target_env = "musl", target_env = "ohos", target_env = "relibc"))] {
         pub const RLIMIT_CPU: c_int = 0;
         pub const RLIMIT_FSIZE: c_int = 1;
         pub const RLIMIT_DATA: c_int = 2;

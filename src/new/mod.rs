@@ -107,6 +107,7 @@ cfg_if! {
         pub use qurt::*;
     } else if #[cfg(target_os = "redox")] {
         mod redox;
+        pub use common::posix::unistd::*;
         // pub(crate) use redox::*;
     } else if #[cfg(target_os = "rtems")] {
         mod rtems;
@@ -159,7 +160,7 @@ cfg_if! {
     } else if #[cfg(target_env = "newlib")] {
         mod newlib;
         pub(crate) use newlib::*;
-    } else if #[cfg(target_env = "relibc")] {
+    } else if #[cfg(all(target_env = "relibc", target_os = "linux"))] {
         mod relibc;
         pub(crate) use relibc::*;
     } else if #[cfg(target_env = "sgx")] {
@@ -218,14 +219,14 @@ cfg_if! {
 
 // Per-env headers we export
 cfg_if! {
-    if #[cfg(any(target_env = "musl", target_env = "ohos"))] {
+    if #[cfg(any(target_env = "musl", all(target_env = "relibc", target_os = "linux"), target_env = "ohos"))] {
         pub use sys::socket::*;
     }
 }
 
 // Per-family headers we export
 cfg_if! {
-    if #[cfg(all(target_family = "unix", not(target_os = "qurt")))] {
+    if #[cfg(all(target_family = "unix", not(target_os = "qurt"), not(target_os = "redox")))] {
         // FIXME(pthread): eventually all platforms should use this module
         #[cfg(any(
             target_os = "android",
