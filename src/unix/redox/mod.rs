@@ -31,6 +31,22 @@ pub type id_t = c_uint;
 pub type uid_t = c_int;
 pub type gid_t = c_int;
 
+pub type Elf32_Addr = c_ulong;
+pub type Elf32_Half = c_ushort;
+pub type Elf32_Off = c_ulong;
+pub type Elf32_Sword = c_long;
+pub type Elf32_Word = c_ulong;
+pub type Elf32_Lword = c_ulonglong;
+
+pub type Elf64_Addr = c_ulong;
+pub type Elf64_Half = c_ushort;
+pub type Elf64_Off = c_ulong;
+pub type Elf64_Sword = c_int;
+pub type Elf64_Sxword = c_long;
+pub type Elf64_Word = c_uint;
+pub type Elf64_Xword = c_ulong;
+pub type Elf64_Lword = c_ulong;
+
 extern_ty! {
     pub enum timezone {}
 }
@@ -81,6 +97,33 @@ s! {
         pub dli_fbase: *mut c_void,
         pub dli_sname: *const c_char,
         pub dli_saddr: *mut c_void,
+    }
+
+    #[cfg(target_pointer_width = "32")]
+    pub struct dl_phdr_info {
+        pub dlpi_addr: crate::Elf32_Addr,
+        pub dlpi_name: *const c_char,
+        pub dlpi_phdr: *const crate::Elf32_Phdr,
+        pub dlpi_phnum: crate::Elf32_Half,
+    }
+
+    #[cfg(target_pointer_width = "64")]
+    pub struct dl_phdr_info {
+        pub dlpi_addr: crate::Elf64_Addr,
+        pub dlpi_name: *const c_char,
+        pub dlpi_phdr: *const crate::Elf64_Phdr,
+        pub dlpi_phnum: crate::Elf64_Half,
+    }
+
+    pub struct Elf64_Phdr {
+        pub p_type: crate::Elf64_Word,
+        pub p_flags: crate::Elf64_Word,
+        pub p_offset: crate::Elf64_Off,
+        pub p_vaddr: crate::Elf64_Addr,
+        pub p_paddr: crate::Elf64_Addr,
+        pub p_filesz: crate::Elf64_Xword,
+        pub p_memsz: crate::Elf64_Xword,
+        pub p_align: crate::Elf64_Xword,
     }
 
     pub struct epoll_event {
@@ -1248,6 +1291,18 @@ extern "C" {
         group: crate::gid_t,
         groups: *mut crate::gid_t,
         ngroups: *mut c_int,
+    ) -> c_int;
+
+    // link.h
+    pub fn dl_iterate_phdr(
+        callback: Option<
+            unsafe extern "C" fn(
+                info: *mut crate::dl_phdr_info,
+                size: size_t,
+                data: *mut c_void,
+            ) -> c_int,
+        >,
+        data: *mut c_void,
     ) -> c_int;
 
     // malloc.h
