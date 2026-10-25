@@ -99,20 +99,28 @@ s! {
         pub dli_saddr: *mut c_void,
     }
 
-    #[cfg(target_pointer_width = "32")]
     pub struct dl_phdr_info {
-        pub dlpi_addr: crate::Elf32_Addr,
-        pub dlpi_name: *const c_char,
-        pub dlpi_phdr: *const crate::Elf32_Phdr,
-        pub dlpi_phnum: crate::Elf32_Half,
-    }
+        #[cfg(target_pointer_width = "64")]
+        pub dlpi_addr: Elf64_Addr,
+        #[cfg(target_pointer_width = "32")]
+        pub dlpi_addr: Elf32_Addr,
 
-    #[cfg(target_pointer_width = "64")]
-    pub struct dl_phdr_info {
-        pub dlpi_addr: crate::Elf64_Addr,
         pub dlpi_name: *const c_char,
-        pub dlpi_phdr: *const crate::Elf64_Phdr,
-        pub dlpi_phnum: crate::Elf64_Half,
+
+        #[cfg(target_pointer_width = "64")]
+        pub dlpi_phdr: *const Elf64_Phdr,
+        #[cfg(target_pointer_width = "32")]
+        pub dlpi_phdr: *const Elf32_Phdr,
+
+        #[cfg(target_pointer_width = "64")]
+        pub dlpi_phnum: Elf64_Half,
+        #[cfg(target_pointer_width = "32")]
+        pub dlpi_phnum: Elf32_Half,
+
+        pub dlpi_adds: c_ulonglong,
+        pub dlpi_subs: c_ulonglong,
+        pub dlpi_tls_modid: size_t,
+        pub dlpi_tls_data: *mut c_void,
     }
 
     pub struct Elf64_Phdr {
